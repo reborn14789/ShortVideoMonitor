@@ -1,131 +1,63 @@
-package com.example.shortvideomonitor;
+# GitHub自动构建APK指南
 
-import android.app.Service;
-import android.content.Intent;
-import android.graphics.PixelFormat;
-import android.os.Build;
-import android.os.Handler;
-import android.os.IBinder;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+## 步骤1：创建GitHub仓库
+1. 访问 https://github.com 并登录/注册
+2. 点击右上角 "+" → "New repository"
+3. 仓库名：`ShortVideoMonitor`
+4. 选择 "Public" 或 "Private"
+5. 不要初始化README.md（我们已经有文件了）
+6. 点击 "Create repository"
 
-public class OverlayService extends Service {
+## 步骤2：上传文件到GitHub
+### 方法A：使用GitHub网页上传
+1. 在新建的仓库页面，点击 "Add file" → "Upload files"
+2. 将本文件夹中的所有文件拖拽到上传区域
+3. 点击 "Commit changes"
 
-    private WindowManager windowManager;
-    private View overlayView;
-    private Handler handler;
-    
-    private static final int AUTO_CLOSE_DELAY = 10000; // 10秒后自动关闭
+### 方法B：使用Git命令行
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/你的用户名/ShortVideoMonitor.git
+git push -u origin main
+```
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        handler = new Handler();
-    }
+## 步骤3：触发构建
+1. 进入仓库的 "Actions" 标签页
+2. 点击 "Android Build" 工作流
+3. 点击 "Run workflow" → "Run workflow"
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        showOverlay(intent);
-        return START_NOT_STICKY;
-    }
+## 步骤4：下载APK
+构建完成后（约5-10分钟）：
+1. 在 "Actions" 页面查看构建结果
+2. 点击成功的构建
+3. 在 "Artifacts" 部分下载 `app-debug-apk.zip`
+4. 解压得到 `app-debug.apk` 文件
 
-    private void showOverlay(Intent intent) {
-        // 移除已有的悬浮窗
-        removeOverlay();
-        
-        // 创建悬浮窗布局
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        overlayView = inflater.inflate(R.layout.alert_overlay, null);
-        
-        // 设置弹窗内容
-        TextView tvMessage = overlayView.findViewById(R.id.tvAlertMessage);
-        if (intent != null && intent.hasExtra("TIME_LIMIT")) {
-            int timeLimit = intent.getIntExtra("TIME_LIMIT", 3);
-            String message = "您已经在竖屏短视频上连续使用超过" + timeLimit + "分钟，请注意休息！";
-            tvMessage.setText(message);
-        }
-        
-        // 设置按钮点击事件
-        Button btnClose = overlayView.findViewById(R.id.btnCloseAlert);
-        Button btnSnooze = overlayView.findViewById(R.id.btnSnoozeAlert);
-        
-        btnClose.setOnClickListener(v -> {
-            removeOverlay();
-            stopSelf();
-        });
-        
-        btnSnooze.setOnClickListener(v -> {
-            removeOverlay();
-            Toast.makeText(this, "5分钟后会再次提醒", Toast.LENGTH_SHORT).show();
-            // 设置5分钟后再次提醒的逻辑
-            handler.postDelayed(() -> {
-                Intent newIntent = new Intent(this, OverlayService.class);
-                if (intent != null) {
-                    newIntent.putExtra("TIME_LIMIT", intent.getIntExtra("TIME_LIMIT", 3));
-                }
-                startService(newIntent);
-            }, 5 * 60 * 1000); // 5分钟
-            stopSelf();
-        });
-        
-        // 设置窗口参数
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ?
-                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
-                        WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT);
-        
-        params.gravity = Gravity.CENTER;
-        params.x = 0;
-        params.y = 0;
-        
-        // 添加悬浮窗
-        try {
-            windowManager.addView(overlayView, params);
-            
-            // 10秒后自动关闭
-            handler.postDelayed(() -> {
-                removeOverlay();
-                stopSelf();
-            }, AUTO_CLOSE_DELAY);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "无法显示弹窗，请检查悬浮窗权限", Toast.LENGTH_LONG).show();
-        }
-    }
+## 步骤5：安装到手机
+1. 将 `app-debug.apk` 传输到小米手机
+2. 在手机上找到文件并点击安装
+3. 如果提示"禁止安装未知来源应用"：
+   - 点击"设置"
+   - 允许"安装未知应用"
+4. 安装完成后打开应用
+5. 按照应用提示授予权限
 
-    private void removeOverlay() {
-        if (overlayView != null && windowManager != null) {
-            try {
-                windowManager.removeView(overlayView);
-                overlayView = null;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
+## 注意事项
+- 首次构建可能需要较长时间（下载依赖）
+- 确保手机Android版本 >= 6.0 (API 23)
+- 需要授予"悬浮窗"和"使用情况统计"权限
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        removeOverlay();
-        handler.removeCallbacksAndMessages(null);
-    }
+## 问题排查
+如果构建失败：
+1. 检查 "Actions" 页面的错误信息
+2. 确保所有文件已正确上传
+3. 可能需要调整Android SDK版本
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-}
+## 替代方案
+如果GitHub构建太复杂，可以考虑：
+1. 使用本地Android Studio构建
+2. 使用其他在线构建服务
+3. 寻找现成的类似应用

@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">短视频时间监测器</string>
+    <string name="title_main">短视频使用时间监测</string>
+    <string name="btn_start_monitor">开始监测</string>
+    <string name="btn_stop_monitor">停止监测</string>
+    <string name="btn_grant_permission">授予权限</string>
+    <string name="status_monitoring">正在监测中...</string>
+    <string name="status_stopped">监测已停止</string>
+    <string name="permission_required">需要授予权限才能使用</string>
+    <string name="overlay_permission">悬浮窗权限</string>
+    <string name="usage_stats_permission">使用情况统计权限</string>
+    
+    <!-- 弹窗提示 -->
+    <string name="alert_title">使用时间提醒</string>
+    <string name="alert_message">您已经在竖屏短视频上连续使用超过3分钟，请注意休息！</string>
+    <string name="btn_close_alert">关闭提示</string>
+    <string name="btn_snooze_alert">5分钟后提醒</string>
+    
+    <!-- 设置 -->
+    <string name="setting_time_limit">时间限制（分钟）</string>
+    <string name="setting_enable_notification">启用通知</string>
+    <string name="setting_video_apps">监测的短视频应用</string>
+    
+    <!-- 短视频应用列表 -->
+    <string name="app_tiktok">抖音</string>
+    <string name="app_kuaishou">快手</string>
+    <string name="app_bilibili">哔哩哔哩</string>
+    <string name="app_youtube_shorts">YouTube Shorts</string>
+</resources>
